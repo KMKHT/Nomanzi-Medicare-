@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nomanzi Medicare - Premium Organic Store</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #ffffff;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #10b981; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669; 
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- Setup Globals ---
+        const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // --- Icon Components (Replacing Lucide Imports for Single File Reliability) ---
+        const IconBase = ({ children, size = 24, className = "", ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className} 
+                {...props}
+            >
+                {children}
+            </svg>
+        );
+
+        const ShoppingBag = (props) => <IconBase {...props}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></IconBase>;
+        const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>;
+        const Menu = (props) => <IconBase {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>;
+        const X = (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>;
+        const Leaf = (props) => <IconBase {...props}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 1.45 10a7 7 0 0 1-9.45 8Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></IconBase>;
+        const Heart = (props) => <IconBase {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></IconBase>;
+        const ArrowRight = (props) => <IconBase {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>;
+        const Star = (props) => <IconBase {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></IconBase>;
+        const ShieldCheck = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></IconBase>;
+        const Truck = (props) => <IconBase {...props}><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></IconBase>;
+        const Phone = (props) => <IconBase {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconBase>;
+        const MapPin = (props) => <IconBase {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconBase>;
+        const Facebook = (props) => <IconBase {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></IconBase>;
+        const Instagram = (props) => <IconBase {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></IconBase>;
+        const Twitter = (props) => <IconBase {...props}><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-12.7 12.5S.2 5.3 4.1 2c2.1-1.8 5.1-.5 6.3 1 2.4-1.6 4.8-1.2 6.4 1C18.5 2.8 22 4 22 4z"/></IconBase>;
+
+        // --- Constants ---
+        const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&q=80&w=800";
+
+        // --- Mock Data ---
+        const CATEGORIES = ["All", "Supplements", "Organic Food", "Herbal Care", "Devices"];
+
+        const PRODUCTS = [
+            {
+                id: 1,
+                name: "Pure Black Seed Oil",
+                category: "Herbal Care",
+                price: 850,
+                rating: 4.9,
+                image: "https://images.unsplash.com/photo-1629196914168-3a2652305f9e?auto=format&fit=crop&q=80&w=800",
+                desc: "Cold-pressed premium Kalojira oil for immune support."
+            },
+            {
+                id: 2,
+                name: "Sundarban Honey",
+                category: "Organic Food",
+                price: 1200,
+                rating: 5.0,
+                image: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&q=80&w=800",
+                desc: "100% Raw honey sourced directly from the mangroves."
+            },
+            {
+                id: 3,
+                name: "Omega-3 Fish Oil",
+                category: "Supplements",
+                price: 1500,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&q=80&w=800",
+                desc: "High potency EPA & DHA for heart health."
+            },
+            {
+                id: 4,
+                name: "Organic Chia Seeds",
+                category: "Organic Food",
+                price: 650,
+                rating: 4.7,
+                image: "https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?auto=format&fit=crop&q=80&w=800",
+                desc: "Superfood packed with fiber and antioxidants."
+            },
+            {
+                id: 5,
+                name: "Digital BP Monitor",
+                category: "Devices",
+                price: 3200,
+                rating: 4.6,
+                image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
+                desc: "Accurate blood pressure monitoring at home."
+            },
+            {
+                id: 6,
+                name: "Multivitamin Complex",
+                category: "Supplements",
+                price: 950,
+                rating: 4.8,
+                image: "https://images.unsplash.com/photo-1550572017-ed108bc27253?auto=format&fit=crop&q=80&w=800",
+                desc: "Daily nutritional support for active lifestyles."
+            },
+            {
+                id: 7,
+                name: "Moringa Powder",
+                category: "Herbal Care",
+                price: 550,
+                rating: 4.9,
+                image: "https://images.unsplash.com/photo-1611075385610-85f269416556?auto=format&fit=crop&q=80&w=800",
+                desc: "The miracle tree leaf powder for energy."
+            },
+            {
+                id: 8,
+                name: "Whey Protein Isolate",
+                category: "Supplements",
+                price: 6500,
+                rating: 4.9,
+                image: "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&q=80&w=800",
+                desc: "Pure protein for muscle recovery and growth."
+            }
+        ];
+
+        // --- App Components ---
+
+        const Navbar = ({ cartCount, onOpenCart }) => {
+            const [scrolled, setScrolled] = useState(false);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
+                    <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-emerald-500 p-2 rounded-xl text-white">
+                                <Leaf size={24} fill="currentColor" />
+                            </div>
+                            <span className={`text-2xl font-bold tracking-tight ${scrolled ? 'text-gray-900' : 'text-gray-900'}`}>
+                                Nomanzi<span className="text-emerald-600">.</span>
+                            </span>
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-8 font-medium text-gray-600">
+                            {['Home', 'Shop', 'Organic', 'About', 'Contact'].map((item) => (
+                                <a key={item} href="#" className="hover:text-emerald-600 transition-colors relative group">
+                                    {item}
+                                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full"></span>
+                                </a>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600">
+                                <Search size={20} />
+                            </button>
+                            <button onClick={onOpenCart} className="relative p-2 hover:bg-emerald-50 rounded-full transition-colors text-gray-600 hover:text-emerald-600">
+                                <ShoppingBag size={20} />
+                                {cartCount > 0 && (
+                                    <motion.span 
+                                        initial={{ scale: 0 }} 
+                                        animate={{ scale: 1 }} 
+                                        className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white"
+                                    >
+                                        {cartCount}
+                                    </motion.span>
+                                )}
+                            </button>
+                            <button 
+                                className="md:hidden p-2 text-gray-600"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            >
+                                {mobileMenuOpen ? <X /> : <Menu />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Mobile Menu */}
+                    <AnimatePresence>
+                        {mobileMenuOpen && (
+                            <motion.div 
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="md:hidden bg-white border-b overflow-hidden"
+                            >
+                                <div className="flex flex-col p-6 gap-4">
+                                    {['Home', 'Shop', 'Organic', 'About', 'Contact'].map((item) => (
+                                        <a key={item} href="#" className="text-lg font-medium text-gray-800">{item}</a>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </nav>
+            );
+        };
+
+        const Hero = () => {
+            return (
+                <section className="relative min-h-screen pt-32 pb-20 px-6 overflow-hidden bg-gradient-to-b from-emerald-50/50 to-white">
+                    {/* Abstract Background Shapes */}
+                    <div className="absolute top-20 right-0 w-[800px] h-[800px] bg-emerald-100/40 rounded-full blur-3xl -z-10 animate-pulse" />
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-3xl -z-10" />
+
+                    <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+                        <motion.div 
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="space-y-8"
+                        >
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+                                <Star size={16} fill="currentColor" />
+                                <span>#1 Trusted Health Brand in Bangladesh</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 leading-[1.1]">
+                                Nature's Healing, <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
+                                    Modern Science.
+                                </span>
+                            </h1>
+                            <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
+                                Discover premium organic supplements, herbal remedies, and health essentials curated for the modern Bangladeshi lifestyle.
+                            </p>
+                            
+                            <div className="flex flex-wrap gap-4">
+                                <motion.button 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-gray-900 text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 shadow-xl shadow-gray-200"
+                                >
+                                    Shop Now <ArrowRight size={20} />
+                                </motion.button>
+                                <motion.button 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-white text-gray-900 px-8 py-4 rounded-2xl font-semibold border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                                >
+                                    View Collections
+                                </motion.button>
+                            </div>
+
+                            <div className="flex items-center gap-6 pt-4 text-sm font-medium text-gray-500">
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-green-100 p-1.5 rounded-full"><ShieldCheck size={16} className="text-green-600" /></div>
+                                    Certified Organic
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-blue-100 p-1.5 rounded-full"><Truck size={16} className="text-blue-600" /></div>
+                                    Fast Delivery in Dhaka
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="relative"
+                        >
+                            <div className="relative z-10 bg-white/40 backdrop-blur-xl border border-white/50 p-6 rounded-[2.5rem] shadow-2xl">
+                                <img 
+                                    src="https://images.unsplash.com/photo-1544367563-12123d8965cd?auto=format&fit=crop&q=80&w=1000" 
+                                    alt="Organic Products" 
+                                    onError={(e) => { e.target.src = FALLBACK_IMAGE; e.target.onerror = null; }}
+                                    className="w-full h-[300px] md:h-[500px] object-cover rounded-[2rem]"
+                                />
+                                {/* Floating Card */}
+                                <motion.div 
+                                    animate={{ y: [0, -10, 0] }}
+                                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                    className="absolute -bottom-8 -left-8 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 max-w-xs"
+                                >
+                                    <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
+                                        <Leaf size={24} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900">100% Halal & Pure</p>
+                                        <p className="text-xs text-gray-500">Tested in Lab</p>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+            );
+        };
+
+        const ProductCard = ({ product, onAdd }) => {
+            return (
+                <motion.div 
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    whileHover={{ y: -10 }}
+                    className="group bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
+                >
+                    <div className="relative h-64 overflow-hidden rounded-2xl bg-gray-100">
+                        <img 
+                            src={product.image} 
+                            alt={product.name} 
+                            onError={(e) => { e.target.src = FALLBACK_IMAGE; e.target.onerror = null; }}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <button className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 transition-colors">
+                            <Heart size={20} />
+                        </button>
+                        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-800">
+                            {product.category}
+                        </div>
+                    </div>
+                    
+                    <div className="pt-4 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                                {product.name}
+                            </h3>
+                            <div className="flex items-center gap-1 text-yellow-500 text-sm font-bold">
+                                <Star size={14} fill="currentColor" /> {product.rating}
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-4 line-clamp-2">{product.desc}</p>
+                        
+                        <div className="mt-auto flex justify-between items-center">
+                            <span className="text-xl font-bold text-gray-900">
+                                ৳{product.price}
+                            </span>
+                            <motion.button 
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => onAdd(product)}
+                                className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 group-hover:bg-emerald-600 transition-colors"
+                            >
+                                Add <ShoppingBag size={16} />
+                            </motion.button>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        };
+
+        const ShopSection = ({ onAddToCart }) => {
+            const [activeCategory, setActiveCategory] = useState("All");
+            const filteredProducts = activeCategory === "All" 
+                ? PRODUCTS 
+                : PRODUCTS.filter(p => p.category === activeCategory);
+
+            return (
+                <section className="py-20 px-6 max-w-7xl mx-auto" id="shop">
+                    <div className="text-center mb-12">
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Premium Selection</h2>
+                        <p className="text-gray-500">Handpicked items for your health and wellness journey.</p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-4 mb-12">
+                        {CATEGORIES.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setActiveCategory(cat)}
+                                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 border ${
+                                    activeCategory === cat 
+                                        ? 'bg-gray-900 text-white border-gray-900 shadow-lg scale-105' 
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                                }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    <motion.div 
+                        layout
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+                    >
+                        <AnimatePresence>
+                            {filteredProducts.map((product) => (
+                                <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                </section>
+            );
+        };
+
+        const CartDrawer = ({ isOpen, onClose, cart, onRemove }) => {
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+            return (
+                <AnimatePresence>
+                    {isOpen && (
+                        <>
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={onClose}
+                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+                            />
+                            <motion.div 
+                                initial={{ x: '100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[70] shadow-2xl flex flex-col"
+                            >
+                                <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                        <ShoppingBag size={20} /> Your Cart ({cart.length})
+                                    </h2>
+                                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    {cart.length === 0 ? (
+                                        <div className="text-center text-gray-500 mt-20">
+                                            <ShoppingBag size={48} className="mx-auto mb-4 opacity-20" />
+                                            <p>Your cart is empty.</p>
+                                        </div>
+                                    ) : (
+                                        cart.map((item, idx) => (
+                                            <motion.div 
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                key={`${item.id}-${idx}`}
+                                                className="flex gap-4 p-3 bg-white border border-gray-100 rounded-xl shadow-sm"
+                                            >
+                                                <img 
+                                                    src={item.image} 
+                                                    alt={item.name} 
+                                                    onError={(e) => { e.target.src = FALLBACK_IMAGE; e.target.onerror = null; }}
+                                                    className="w-20 h-20 object-cover rounded-lg bg-gray-100" 
+                                                />
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-gray-900">{item.name}</h4>
+                                                    <p className="text-sm text-gray-500">{item.category}</p>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        <span className="font-bold text-emerald-600">৳{item.price}</span>
+                                                        <button 
+                                                            onClick={() => onRemove(idx)}
+                                                            className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="p-6 border-t bg-gray-50">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="text-gray-600">Subtotal</span>
+                                        <span className="text-xl font-bold text-gray-900">৳{total}</span>
+                                    </div>
+                                    <button className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200">
+                                        Checkout Now
+                                    </button>
+                                    <p className="text-xs text-center text-gray-400 mt-4">
+                                        Secure checkout powered by SSLCommerz
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+            );
+        };
+
+        const Features = () => {
+            return (
+                <div className="bg-gray-900 text-white py-20 px-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid md:grid-cols-3 gap-8">
+                            <div className="p-8 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
+                                <Leaf className="text-emerald-400 mb-4" size={40} />
+                                <h3 className="text-xl font-bold mb-2">100% Organic Sources</h3>
+                                <p className="text-gray-400">We source directly from registered organic farms in Sylhet and Chittagong Hill Tracts.</p>
+                            </div>
+                            <div className="p-8 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
+                                <ShieldCheck className="text-emerald-400 mb-4" size={40} />
+                                <h3 className="text-xl font-bold mb-2">BSTI Approved</h3>
+                                <p className="text-gray-400">All our supplementary products are tested and approved for safety standards.</p>
+                            </div>
+                            <div className="p-8 bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
+                                <Truck className="text-emerald-400 mb-4" size={40} />
+                                <h3 className="text-xl font-bold mb-2">Nationwide Delivery</h3>
+                                <p className="text-gray-400">Fast home delivery within 24 hours in Dhaka and 48 hours anywhere in Bangladesh.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Footer = () => {
+            return (
+                <footer className="bg-white border-t border-gray-100 pt-16 pb-8 px-6">
+                    <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-emerald-500 p-2 rounded-xl text-white">
+                                    <Leaf size={20} fill="currentColor" />
+                                </div>
+                                <span className="text-xl font-bold text-gray-900">
+                                    Nomanzi<span className="text-emerald-600">.</span>
+                                </span>
+                            </div>
+                            <p className="text-gray-500 text-sm leading-relaxed">
+                                Redefining healthcare in Bangladesh with premium organic products and modern supplementary solutions.
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Quick Links</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" className="hover:text-emerald-600">About Us</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Our Certifications</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Health Blog</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Wholesale</a></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Customer Care</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" className="hover:text-emerald-600">Track Order</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Shipping Policy</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Returns & Refunds</a></li>
+                                <li><a href="#" className="hover:text-emerald-600">Contact Support</a></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Contact Us</h4>
+                            <ul className="space-y-3 text-sm text-gray-600">
+                                <li className="flex items-center gap-3">
+                                    <MapPin size={16} className="text-emerald-600" />
+                                    <span>House 12, Road 5, Gulshan 1, Dhaka</span>
+                                </li>
+                                <li className="flex items-center gap-3">
+                                    <Phone size={16} className="text-emerald-600" />
+                                    <span>+880 1712 345 678</span>
+                                </li>
+                                <li className="flex gap-4 mt-4">
+                                    <a href="#" className="text-gray-400 hover:text-emerald-600"><Facebook size={20} /></a>
+                                    <a href="#" className="text-gray-400 hover:text-emerald-600"><Instagram size={20} /></a>
+                                    <a href="#" className="text-gray-400 hover:text-emerald-600"><Twitter size={20} /></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div className="max-w-7xl mx-auto border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-400">
+                        <p>&copy; 2024 Nomanzi Medicare. All rights reserved.</p>
+                        <div className="flex gap-4">
+                            <span>Privacy Policy</span>
+                            <span>Terms of Service</span>
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
+        function App() {
+            const [cart, setCart] = useState([]);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+
+            const addToCart = (product) => {
+                setCart([...cart, product]);
+                setIsCartOpen(true);
+            };
+
+            const removeFromCart = (index) => {
+                const newCart = [...cart];
+                newCart.splice(index, 1);
+                setCart(newCart);
+            };
+
+            return (
+                <div className="font-sans text-gray-900 bg-white selection:bg-emerald-100 selection:text-emerald-900">
+                    <Navbar cartCount={cart.length} onOpenCart={() => setIsCartOpen(true)} />
+                    <Hero />
+                    <ShopSection onAddToCart={addToCart} />
+                    <Features />
+                    <Footer />
+                    <CartDrawer 
+                        isOpen={isCartOpen} 
+                        onClose={() => setIsCartOpen(false)} 
+                        cart={cart}
+                        onRemove={removeFromCart}
+                    />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
